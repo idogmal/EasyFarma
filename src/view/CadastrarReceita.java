@@ -29,8 +29,8 @@ public class CadastrarReceita extends Application {
         menuLateral.setStyle("-fx-background-color: #2E7D32;");
         menuLateral.setPrefWidth(180);
 
-        Button btnCadastrarReceita = criarBotaoMenu("Cadastrar Receita", () -> {});
-        btnCadastrarReceita.setDisable(true);  // Tela atual
+        Button btnCadastrarReceita = criarBotaoMenu("Cadastrar Receita", () -> {}); // Tela atual, desabilitado
+        btnCadastrarReceita.setDisable(true);
         Button btnPesquisarReceita = criarBotaoMenu("Pesquisar Receita", () -> {
             new PesquisarReceita().start(new Stage());
             primaryStage.close();
@@ -50,7 +50,7 @@ public class CadastrarReceita extends Application {
         Label lblTitulo = new Label("Cadastro de Receita");
         lblTitulo.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
 
-        // Criação dos campos do formulário com rótulo acima do campo de entrada
+        // Criação dos campos do formulário
         VBox campoPaciente = criarCampo("Nome do Paciente:", new TextField());
         VBox campoCPF = criarCampo("CPF do Paciente:", new TextField());
         VBox campoCRM = criarCampo("CRM do Médico:", new TextField());
@@ -70,7 +70,6 @@ public class CadastrarReceita extends Application {
         VBox formulario = new VBox(15, campoPaciente, campoCPF, campoCRM, campoMedicamento, campoData, buttonBox);
         formulario.setMaxWidth(400);
         formulario.setAlignment(Pos.CENTER_LEFT);
-
         conteudoCentral.getChildren().addAll(lblTitulo, formulario);
 
         // ===================== LOGO NO RODAPÉ (inferior direito) =====================
@@ -92,7 +91,6 @@ public class CadastrarReceita extends Application {
 
         // ===================== AÇÃO DOS BOTÕES DO FORMULÁRIO =====================
         btnCadastrar.setOnAction(e -> {
-            // Recupera os dados dos campos do formulário
             TextField txtPaciente = (TextField) campoPaciente.getChildren().get(1);
             TextField txtCPF = (TextField) campoCPF.getChildren().get(1);
             TextField txtCRM = (TextField) campoCRM.getChildren().get(1);
@@ -105,17 +103,23 @@ public class CadastrarReceita extends Application {
             String medicamentosEntrada = txtMedicamento.getText().trim();
             String dataPrescricao = (dpData.getValue() != null) ? dpData.getValue().toString() : "";
 
-            if (paciente.isEmpty() || cpf.isEmpty() || crm.isEmpty() || medicamentosEntrada.isEmpty() || dataPrescricao.isEmpty()) {
+            if (paciente.isEmpty() || cpf.isEmpty() || crm.isEmpty() ||
+                    medicamentosEntrada.isEmpty() || dataPrescricao.isEmpty()) {
                 Alert alert = new Alert(Alert.AlertType.ERROR, "Todos os campos são obrigatórios!", ButtonType.OK);
                 alert.showAndWait();
                 return;
             }
 
-            // Chama o método do controlador para cadastrar a receita
             receitaController.cadastrarReceita(paciente, cpf, crm, medicamentosEntrada, dataPrescricao);
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Receita cadastrada com sucesso!", ButtonType.OK);
             alert.showAndWait();
-            primaryStage.close();
+
+            // Limpa os campos para permitir cadastro de nova receita sem fechar a janela
+            txtPaciente.clear();
+            txtCPF.clear();
+            txtCRM.clear();
+            txtMedicamento.clear();
+            dpData.setValue(null);
         });
 
         btnCancelar.setOnAction(e -> primaryStage.close());
@@ -135,8 +139,7 @@ public class CadastrarReceita extends Application {
     private VBox criarCampo(String labelText, Control input) {
         Label label = new Label(labelText);
         label.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
-        VBox vbox = new VBox(5, label, input);
-        return vbox;
+        return new VBox(5, label, input);
     }
 
     // Método auxiliar para criar um botão no menu lateral com a ação fornecida
