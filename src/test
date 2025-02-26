@@ -1,0 +1,87 @@
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+
+@RunWith(Suite.class)
+@Suite.SuiteClasses({
+    EstoqueDAOTest.class,
+    ReceitaDAOTest.class,
+    ReceitaControllerTest.class
+})
+public class TestSuite {
+    // Esta classe apenas agrupa os testes
+}
+
+import org.junit.Before;
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+public class EstoqueDAOTest {
+    private EstoqueDAO estoqueDAO;
+
+    @Before
+    public void setUp() {
+        estoqueDAO = new EstoqueDAO();
+    }
+
+    @Test
+    public void testAdicionarItem() {
+        assertTrue(estoqueDAO.adicionarItem("Paracetamol", 10));
+    }
+
+    @Test
+    public void testRemoverItem() {
+        estoqueDAO.adicionarItem("Dipirona", 5);
+        assertTrue(estoqueDAO.removerItem("Dipirona", 3));
+    }
+
+    @Test
+    public void testBuscarItem() {
+        estoqueDAO.adicionarItem("Ibuprofeno", 7);
+        assertNotNull(estoqueDAO.buscarItem("Ibuprofeno"));
+    }
+}
+
+public class ReceitaDAOTest {
+    private ReceitaDAO receitaDAO;
+
+    @Before
+    public void setUp() {
+        receitaDAO = new ReceitaDAO();
+    }
+
+    @Test
+    public void testCriarReceita() {
+        assertTrue(receitaDAO.criarReceita("Paciente1", "Amoxicilina", 7));
+    }
+
+    @Test
+    public void testBuscarReceita() {
+        receitaDAO.criarReceita("Paciente2", "Ibuprofeno", 5);
+        assertNotNull(receitaDAO.buscarReceita("Paciente2"));
+    }
+
+    @Test
+    public void testExcluirReceita() {
+        receitaDAO.criarReceita("Paciente3", "Paracetamol", 10);
+        assertTrue(receitaDAO.excluirReceita("Paciente3"));
+    }
+}
+
+public class ReceitaControllerTest {
+    private ReceitaController receitaController;
+
+    @Before
+    public void setUp() {
+        receitaController = new ReceitaController();
+    }
+
+    @Test
+    public void testValidarReceita() {
+        assertTrue(receitaController.validarReceita("Paciente1", "Amoxicilina", 7));
+    }
+
+    @Test
+    public void testRejeitarReceitaInvalida() {
+        assertFalse(receitaController.validarReceita("Paciente2", "", 0));
+    }
+}
