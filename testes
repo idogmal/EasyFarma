@@ -1,0 +1,42 @@
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class EasyFarmaTests {
+
+    private final UsuarioService usuarioService = new UsuarioService();
+    private final ReceitaService receitaService = new ReceitaService();
+
+    @Test
+    void devePermitirLoginComCredenciaisValidas() {
+        assertTrue(usuarioService.login("admin", "1234"));
+    }
+
+    @Test
+    void naoDevePermitirLoginComSenhaInvalida() {
+        assertFalse(usuarioService.login("admin", "0000"));
+    }
+
+    @Test
+    void deveCadastrarReceitaComSucesso() {
+        Receita receita = new Receita("Dipirona", "500mg", "Tomar 1 comprimido");
+        assertTrue(receitaService.cadastrarReceita(receita));
+    }
+
+    @Test
+    void naoDeveCadastrarReceitaComCamposVazios() {
+        Receita receita = new Receita("", "", "");
+        assertFalse(receitaService.cadastrarReceita(receita));
+    }
+
+    @Test
+    void devePesquisarReceitaPorNome() {
+        Receita receita = receitaService.pesquisarReceita("João Silva");
+        assertNotNull(receita);
+    }
+
+    @Test
+    void deveRetornarNullParaReceitaInexistente() {
+        Receita receita = receitaService.pesquisarReceita("NomeInexistente");
+        assertNull(receita);
+    }
+}
