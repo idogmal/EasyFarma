@@ -1,0 +1,137 @@
+body {
+    margin-top: 50px;
+    margin-left: 280px;
+    font-family: "Verdana", sans-serif;
+    background: linear-gradient(to right, #2d572c 0%, #2d572c 10%, white 10%, white 90%, #2d572c 90%, #2d572c 100%);
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+logo {
+    display: block;
+    margin: 20px auto;
+    max-width: 150px;
+    height: auto;
+}
+
+.menu {
+    position: fixed;
+    left: 20%;
+    transform: translateX(-50%);
+    top: 20px;
+    width: 160px;
+    height: auto;
+    background-color: green;
+    padding: 12px;
+    border-radius: 10px;
+    box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.menu a {
+    display: block;
+    color: white;
+    text-decoration: none;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 5px;
+}
+
+.menu a:hover {
+    background-color: darkgreen;
+}
+
+.content {
+    margin-top: 100px;
+    width: 80%; 
+    margin-left: auto;
+    margin-right: auto;
+    padding: 20px;
+}
+
+form {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    display: inline-block;
+    text-align: left;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    width: 300px;
+    margin-top: 20px;
+}
+
+
+label {
+    display: block;
+    margin-top: 10px;
+    font-weight: normal;
+}
+
+input, button {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+}
+
+button {
+    background-color: green;
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: block;
+    margin: 10px auto;
+    text-align: center;
+    padding: 10px 20px;
+    width: 200px;
+    height: 50px;
+}
+
+
+button:hover {
+    background-color: darkgreen;
+}
+
+table {
+    width: 75%;
+    margin: 100px auto 20px auto;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid black;
+    padding: 10px;
+    text-align: center;
+}
+
+th {
+    background-color: green;
+    color: white;
+}
+/* Estilizando a barra de pesquisa */
+input[type="text"] {
+    width: 60%;
+    padding: 10px;
+    margin: 10px auto;
+    display: block;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Ajustando a tabela */
+#tabelaEstoque {
+    width: 60%;
+    margin: 20px auto;
+    border-collapse: collapse;
+}
+
+#tabelaEstoque th, #tabelaEstoque td {
+    border: 1px solid black;
+    padding: 10px;
+    text-align: center;
+}
+
+#tabelaEstoque th {
+    background-color: green;
+    color: white;
+}

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Receita</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <img src="img/logo.png" alt="Logo EasyFarma" class="logo">
+    <nav class="menu">
+        <a href="index.html">Login</a>
+        <a href="cadastro.html">Cadastro de Receita</a>
+        <a href="pesquisa.html">Pesquisar</a>
+        <a href="relatorios.html">Relatórios</a>
+        <a href="estoque.html">Estoque</a>
+    </nav>
+    <header>
+        <h1>Cadastro de Receita</h1>
+    </header>
+    <main>
+        <form id="cadastro-form">
+            <label for="nome">NOME DO PACIENTE:</label>
+            <input type="text" id="nome" required>
+            
+            <label for="cpf">CPF:</label>
+            <input type="text" id="cpf" required>
+            
+            <label for="crm">CRM DO MÉDICO:</label>
+            <input type="text" id="crm" required>
+            
+            <label for="medicamento">MEDICAMENTO(s):</label>
+            <input type="text" id="medicamento" required>
+            
+            <label for="data">DATA DA PRESCRIÇÃO:</label>
+            <input type="date" id="data" required>
+
+            <button type="submit">Cadastrar</button>
+            <button type="reset">Cancelar</button>
+        </form>
+    </main>
+</body>
+</html>
