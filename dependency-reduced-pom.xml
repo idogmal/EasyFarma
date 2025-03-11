@@ -28,7 +28,7 @@
         <artifactId>javafx-maven-plugin</artifactId>
         <version>0.0.8</version>
         <configuration>
-          <mainClass>view.Login</mainClass>
+          <mainClass>viewswing.Login</mainClass>
           <javafx>
             <modules>
               <module>javafx.controls</module>
@@ -49,7 +49,7 @@
             <configuration>
               <transformers>
                 <transformer>
-                  <mainClass>view.Login</mainClass>
+                  <mainClass>viewswing.Login</mainClass>
                 </transformer>
               </transformers>
             </configuration>
