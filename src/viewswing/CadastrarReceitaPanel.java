@@ -1,8 +1,7 @@
 package viewswing;
 
 import controller.ReceitaController;
-import java.io.IOException;
-
+import java.io.IOException; // Import necessário para IOException
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -50,22 +49,18 @@ public class CadastrarReceitaPanel extends JPanel {
         menuLateral.setPreferredSize(new Dimension(180, getHeight()));
         menuLateral.setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        // Agora, todas as chamadas passam String e Runnable:
+        // Botões do menu lateral
         btnCadastrarReceita = criarBotaoMenu("Cadastrar Receita", () -> {
-            // Estamos nesta tela, então ação vazia
+            // Estamos nesta tela, ação vazia.
         });
-        btnCadastrarReceita.setEnabled(false); // desabilitado pois já estamos nessa tela
-
+        btnCadastrarReceita.setEnabled(false);
         btnPesquisarReceita = criarBotaoMenu("Pesquisar Receita", () -> {
-            // Disparar evento para trocar para a tela de Pesquisa
             firePropertyChange("showPesquisar", false, true);
         });
         btnEstoque = criarBotaoMenu("Estoque", () -> {
-            // Disparar evento para trocar para a tela de Estoque
             firePropertyChange("showEstoque", false, true);
         });
         btnSair = criarBotaoMenu("Sair", () -> {
-            // Disparar evento para sair do aplicativo
             firePropertyChange("exit", false, true);
         });
 
@@ -158,14 +153,17 @@ public class CadastrarReceitaPanel extends JPanel {
             txtCRM.setText("");
             txtMedicamentos.setText("");
             txtDataPrescricao.setText("");
+
+            // Dispara evento para indicar que os dados foram atualizados
+            firePropertyChange("refreshData", false, true);
+            // Opcionalmente, pode disparar um evento para manter a tela atual ou navegar
+            firePropertyChange("showCadastro", false, true);
         });
 
         btnCancelar.addActionListener((ActionEvent e) -> {
-            // Disparar evento para voltar ao menu principal, por exemplo
             firePropertyChange("backToMenu", false, true);
         });
 
-        // Monta o painel central
         JPanel centerPanel = new JPanel();
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
         centerPanel.setBackground(Color.WHITE);

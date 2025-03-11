@@ -3,7 +3,7 @@ package viewswing;
 import dao.ReceitaDAO;
 import model.Receita;
 import util.ExportadorReceitas;
-import viewswing.ReceitaExport; // Certifique-se de que essa classe está definida externamente
+import viewswing.ReceitaExport; // Classe externa para exportação
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -44,9 +44,9 @@ public class PesquisarReceitaPanel extends JPanel {
     // Constante para estoque baixo
     private static final int LIMITE_ESTOQUE_BAIXO = 10;
 
-    public PesquisarReceitaPanel() {
+    public PesquisarReceitaPanel(ReceitaDAO receitaDAO) {
         super();
-        this.receitaDAO = new ReceitaDAO();
+        this.receitaDAO = receitaDAO;
         initComponents();
         carregarDados();
     }
@@ -63,10 +63,11 @@ public class PesquisarReceitaPanel extends JPanel {
         menuLateral.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         btnCadastrarReceita = criarBotaoMenu("Cadastrar Receita", () -> {
+            // Dispara um evento para trocar para a tela de cadastro
             firePropertyChange("showCadastrar", false, true);
         });
         btnPesquisarReceita = criarBotaoMenu("Pesquisar Receita", () -> {
-            // Já estamos nesta tela; ação vazia
+            // Já estamos nesta tela; ação vazia.
         });
         btnPesquisarReceita.setEnabled(false);
         btnEstoque = criarBotaoMenu("Estoque", () -> {
@@ -183,6 +184,7 @@ public class PesquisarReceitaPanel extends JPanel {
 
         // ===================== LOGO NO RODAPÉ (inferior direito) =====================
         JPanel bottomBar = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottomBar.setBackground(Color.WHITE);
         bottomBar.setBorder(new EmptyBorder(10, 10, 10, 10));
         try {
             Image logo = ImageIO.read(getClass().getResourceAsStream("/logo.png"));
@@ -200,6 +202,7 @@ public class PesquisarReceitaPanel extends JPanel {
         mainPanel.add(conteudoCentral, BorderLayout.CENTER);
         mainPanel.add(bottomBar, BorderLayout.SOUTH);
 
+        // Como este é um JPanel, apenas adicionamos o mainPanel a este painel.
         add(mainPanel, BorderLayout.CENTER);
         setPreferredSize(new Dimension(900, 600));
 
@@ -245,7 +248,7 @@ public class PesquisarReceitaPanel extends JPanel {
     }
 
     // Carrega os dados das receitas do DAO e preenche a tabela.
-    private void carregarDados() {
+    public void carregarDados() {
         tableModel.setRowCount(0);
         receitaExportList = new ArrayList<>();
         List<Receita> listaReceitas = receitaDAO.listarReceitas();
@@ -294,7 +297,8 @@ public class PesquisarReceitaPanel extends JPanel {
         }
         String senha = JOptionPane.showInputDialog(this, "Digite sua senha:", "Validar Receita", JOptionPane.PLAIN_MESSAGE);
         if (senha != null) {
-            if (senha.equals(LoginSwing.senhaLogada)) {
+            // Para teste, usamos uma senha fixa "admin123". Ajuste conforme sua lógica.
+            if (senha.equals("admin123")) {
                 tableModel.setValueAt("Validada", selectedRow, 4);
                 JOptionPane.showMessageDialog(
                         this,
@@ -327,9 +331,15 @@ public class PesquisarReceitaPanel extends JPanel {
         return btn;
     }
 
+    // Método main para teste isolado do painel
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            new PesquisarReceitaSwing().setVisible(true);
+            JFrame frame = new JFrame("Teste - Pesquisar Receita");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.getContentPane().add(new PesquisarReceitaPanel(new ReceitaDAO()));
+            frame.pack();
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
         });
     }
 }

@@ -27,6 +27,11 @@ public class EstoqueDAO {
         salvarEstoque();
     }
 
+    public void recarregarEstoque() {
+        this.estoque = carregarEstoque();
+    }
+
+
     public int consultarEstoque(String nome) {
         return estoque.consultarEstoque(nome);
     }
