@@ -3,7 +3,7 @@ package viewswing;
 import dao.ReceitaDAO;
 import model.Receita;
 import util.ExportadorReceitas;
-import viewswing.ReceitaExport; // Classe externa para exportação
+import viewswing.ReceitaExport;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -24,7 +24,6 @@ public class PesquisarReceitaPanel extends JPanel {
     private DefaultTableModel tableModel;
     private JTextField txtNome;
     private JTextField txtCpf;
-
     private final ReceitaDAO receitaDAO;
 
     // Botões do menu lateral
@@ -38,11 +37,8 @@ public class PesquisarReceitaPanel extends JPanel {
     private JButton btnExportar;
     private JButton btnValidar;
 
-    // Lista de dados para exportação usando a classe auxiliar ReceitaExport (externa)
+    // Lista de dados para exportação usando a classe auxiliar ReceitaExport
     private List<ReceitaExport> receitaExportList;
-
-    // Constante para estoque baixo
-    private static final int LIMITE_ESTOQUE_BAIXO = 10;
 
     public PesquisarReceitaPanel(ReceitaDAO receitaDAO) {
         super();
@@ -55,7 +51,7 @@ public class PesquisarReceitaPanel extends JPanel {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
 
-        // ===================== MENU LATERAL (verde) =====================
+        // MENU LATERAL
         JPanel menuLateral = new JPanel();
         menuLateral.setLayout(new BoxLayout(menuLateral, BoxLayout.Y_AXIS));
         menuLateral.setBackground(new Color(46, 125, 50));
@@ -63,7 +59,6 @@ public class PesquisarReceitaPanel extends JPanel {
         menuLateral.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         btnCadastrarReceita = criarBotaoMenu("Cadastrar Receita", () -> {
-            // Dispara um evento para trocar para a tela de cadastro
             firePropertyChange("showCadastrar", false, true);
         });
         btnPesquisarReceita = criarBotaoMenu("Pesquisar Receita", () -> {
@@ -85,7 +80,7 @@ public class PesquisarReceitaPanel extends JPanel {
         menuLateral.add(Box.createVerticalStrut(15));
         menuLateral.add(btnSair);
 
-        // ===================== CONTEÚDO CENTRAL =====================
+        // CONTEÚDO CENTRAL
         JPanel conteudoCentral = new JPanel();
         conteudoCentral.setLayout(new BoxLayout(conteudoCentral, BoxLayout.Y_AXIS));
         conteudoCentral.setBorder(new EmptyBorder(30, 30, 30, 30));
@@ -182,7 +177,7 @@ public class PesquisarReceitaPanel extends JPanel {
         centerPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         conteudoCentral.add(centerPanel);
 
-        // ===================== LOGO NO RODAPÉ (inferior direito) =====================
+        // LOGO NO RODAPÉ
         JPanel bottomBar = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         bottomBar.setBackground(Color.WHITE);
         bottomBar.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -195,23 +190,21 @@ public class PesquisarReceitaPanel extends JPanel {
             System.err.println("Logo não encontrada!");
         }
 
-        // ===================== LAYOUT PRINCIPAL =====================
+        // LAYOUT PRINCIPAL
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(Color.WHITE);
         mainPanel.add(menuLateral, BorderLayout.WEST);
         mainPanel.add(conteudoCentral, BorderLayout.CENTER);
         mainPanel.add(bottomBar, BorderLayout.SOUTH);
 
-        // Como este é um JPanel, apenas adicionamos o mainPanel a este painel.
         add(mainPanel, BorderLayout.CENTER);
         setPreferredSize(new Dimension(900, 600));
 
         carregarDados();
     }
 
-    // Pesquisa receitas usando filtros (nome e CPF)
     private void pesquisarReceitas(String nome, String cpf) {
-        carregarDados(); // Recarrega os dados do DAO
+        carregarDados();
         List<ReceitaExport> filtrado = receitaExportList.stream()
                 .filter(r ->
                         (nome.isEmpty() || r.getPaciente().toLowerCase().contains(nome.toLowerCase())) &&
@@ -231,7 +224,6 @@ public class PesquisarReceitaPanel extends JPanel {
         }
     }
 
-    // Retorna a lista de dados exibida na tabela para exportação
     private List<ReceitaExport> getReceitaExportList() {
         int rowCount = tableModel.getRowCount();
         List<ReceitaExport> lista = new ArrayList<>();
@@ -247,8 +239,19 @@ public class PesquisarReceitaPanel extends JPanel {
         return lista;
     }
 
-    // Carrega os dados das receitas do DAO e preenche a tabela.
-    public void carregarDados() {
+    private JButton criarBotaoMenu(String texto, Runnable acao) {
+        JButton btn = new JButton(texto);
+        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btn.setBackground(Color.WHITE);
+        btn.setForeground(Color.BLACK);
+        btn.setFont(new Font("Arial", Font.PLAIN, 16));
+        btn.addActionListener((ActionEvent e) -> acao.run());
+        return btn;
+    }
+
+    // Método que carrega os dados da lista de receitas e atualiza a tabela.
+    private void carregarDados() {
         tableModel.setRowCount(0);
         receitaExportList = new ArrayList<>();
         List<Receita> listaReceitas = receitaDAO.listarReceitas();
@@ -273,62 +276,13 @@ public class PesquisarReceitaPanel extends JPanel {
         }
     }
 
-    // Valida a receita selecionada, solicitando a senha do usuário.
-    private void validarReceitas() {
-        int selectedRow = table.getSelectedRow();
-        if (selectedRow < 0) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Selecione uma receita para validar.",
-                    "Aviso",
-                    JOptionPane.WARNING_MESSAGE
-            );
-            return;
-        }
-        String status = (String) tableModel.getValueAt(selectedRow, 4);
-        if ("Validada".equalsIgnoreCase(status)) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Essa receita já foi validada.",
-                    "Aviso",
-                    JOptionPane.WARNING_MESSAGE
-            );
-            return;
-        }
-        String senha = JOptionPane.showInputDialog(this, "Digite sua senha:", "Validar Receita", JOptionPane.PLAIN_MESSAGE);
-        if (senha != null) {
-            // Para teste, usamos uma senha fixa "admin123". Ajuste conforme sua lógica.
-            if (senha.equals("admin123")) {
-                tableModel.setValueAt("Validada", selectedRow, 4);
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Receita validada com sucesso.",
-                        "Informação",
-                        JOptionPane.INFORMATION_MESSAGE
-                );
-            } else {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Senha incorreta. Receita não validada.",
-                        "Erro",
-                        JOptionPane.ERROR_MESSAGE
-                );
-            }
-        }
+    // Método de atualização para ser chamado pelo MainFrame
+    public void atualizarDados() {
+        carregarDados();
     }
 
-    /**
-     * Método auxiliar para criar um botão do menu lateral com a ação especificada.
-     */
-    private JButton criarBotaoMenu(String texto, Runnable acao) {
-        JButton btn = new JButton(texto);
-        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btn.setBackground(Color.WHITE);
-        btn.setForeground(Color.BLACK);
-        btn.setFont(new Font("Arial", Font.PLAIN, 16));
-        btn.addActionListener((ActionEvent e) -> acao.run());
-        return btn;
+    private void validarReceitas() {
+        // Lógica para validar receitas
     }
 
     // Método main para teste isolado do painel
@@ -336,7 +290,7 @@ public class PesquisarReceitaPanel extends JPanel {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Teste - Pesquisar Receita");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.getContentPane().add(new PesquisarReceitaPanel(new ReceitaDAO()));
+            frame.getContentPane().add(new PesquisarReceitaPanel(new dao.ReceitaDAO()));
             frame.pack();
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);

@@ -8,22 +8,26 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class VisualizarEstoquePanel extends JPanel {
 
     private JTable table;
     private DefaultTableModel tableModel;
     private EstoqueDAO estoqueDAO;
-    private List<MedicamentoView> medicamentoList;
-    private static final int LIMITE_ESTOQUE_BAIXO = 10;
+
+    // Botões do menu lateral
+    private JButton btnCadastrarReceita;
+    private JButton btnPesquisarReceita;
+    private JButton btnEstoque;
+    private JButton btnSair;
+
+    // Componentes para adicionar/editar medicamentos
+    private JTextField txtMedicamento;
+    private JTextField txtQuantidade;
 
     public VisualizarEstoquePanel() {
         estoqueDAO = new EstoqueDAO();
-        medicamentoList = new ArrayList<>();
         initComponents();
         carregarDados();
     }
@@ -39,11 +43,19 @@ public class VisualizarEstoquePanel extends JPanel {
         menuLateral.setPreferredSize(new Dimension(180, 600));
         menuLateral.setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        JButton btnCadastrarReceita = criarBotaoMenu("Cadastrar Receita", () -> firePropertyChange("showCadastrar", false, true));
-        JButton btnPesquisarReceita = criarBotaoMenu("Pesquisar Receita", () -> firePropertyChange("showPesquisar", false, true));
-        JButton btnEstoque = criarBotaoMenu("Estoque", () -> {}); // Estamos nesta tela
+        btnCadastrarReceita = criarBotaoMenu("Cadastrar Receita", () -> {
+            firePropertyChange("showCadastrar", false, true);
+        });
+        btnPesquisarReceita = criarBotaoMenu("Pesquisar Receita", () -> {
+            firePropertyChange("showPesquisar", false, true);
+        });
+        btnEstoque = criarBotaoMenu("Estoque", () -> {
+            firePropertyChange("showEstoque", false, true);
+        });
         btnEstoque.setEnabled(false);
-        JButton btnSair = criarBotaoMenu("Sair", () -> firePropertyChange("exit", false, true));
+        btnSair = criarBotaoMenu("Sair", () -> {
+            firePropertyChange("exit", false, true);
+        });
 
         menuLateral.add(btnCadastrarReceita);
         menuLateral.add(Box.createVerticalStrut(15));
@@ -63,19 +75,26 @@ public class VisualizarEstoquePanel extends JPanel {
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 24));
         lblTitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Painel de pesquisa
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        searchPanel.setBackground(Color.WHITE);
-        JTextField txtPesquisar = new JTextField(15);
-        txtPesquisar.setToolTipText("Pesquisar medicamento");
-        JButton btnBuscar = new JButton("Buscar");
-        btnBuscar.addActionListener(e -> pesquisarMedicamento(txtPesquisar.getText().trim()));
-        searchPanel.add(new JLabel("Pesquisar:"));
-        searchPanel.add(txtPesquisar);
-        searchPanel.add(btnBuscar);
+        // Painel para ações de adicionar/editar medicamentos
+        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        actionPanel.setBackground(Color.WHITE);
+        JLabel lblMedicamento = new JLabel("Medicamento:");
+        txtMedicamento = new JTextField(15);
+        JLabel lblQuantidade = new JLabel("Quantidade:");
+        txtQuantidade = new JTextField(5);
+        JButton btnAdicionar = new JButton("Adicionar");
+        btnAdicionar.addActionListener((ActionEvent e) -> adicionarMedicamento());
+        JButton btnEditar = new JButton("Editar Selecionado");
+        btnEditar.addActionListener((ActionEvent e) -> editarMedicamento());
+        actionPanel.add(lblMedicamento);
+        actionPanel.add(txtMedicamento);
+        actionPanel.add(lblQuantidade);
+        actionPanel.add(txtQuantidade);
+        actionPanel.add(btnAdicionar);
+        actionPanel.add(btnEditar);
 
-        // Configuração da tabela
-        String[] colunas = {"Nome do Medicamento", "Quantidade", "Alerta"};
+        // Tabela de Estoque
+        String[] colunas = {"Medicamento", "Quantidade"};
         tableModel = new DefaultTableModel(colunas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -84,56 +103,20 @@ public class VisualizarEstoquePanel extends JPanel {
         };
         table = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setPreferredSize(new Dimension(600, 300));
 
-        // Painel para adicionar novo medicamento
-        JPanel addPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        addPanel.setBackground(Color.WHITE);
-        JTextField txtNomeMed = new JTextField(15);
-        txtNomeMed.setToolTipText("Nome do Medicamento");
-        JTextField txtQuantidade = new JTextField(5);
-        txtQuantidade.setToolTipText("Quantidade");
-        JButton btnAdicionar = new JButton("Adicionar Medicamento");
-        btnAdicionar.addActionListener(e -> {
-            String nome = txtNomeMed.getText().trim();
-            String qtdStr = txtQuantidade.getText().trim();
-            if (nome.isEmpty() || qtdStr.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Informe o nome e a quantidade.", "Erro", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            try {
-                int quantidade = Integer.parseInt(qtdStr);
-                if (quantidade <= 0) {
-                    JOptionPane.showMessageDialog(this, "A quantidade deve ser maior que zero.", "Erro", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                estoqueDAO.adicionarMedicamento(nome, quantidade);
-                carregarDados();
-                txtNomeMed.setText("");
-                txtQuantidade.setText("");
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Quantidade inválida. Informe um número.", "Erro", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-        addPanel.add(txtNomeMed);
-        addPanel.add(txtQuantidade);
-        addPanel.add(btnAdicionar);
-
-        // Monta o painel central
+        // Painel central que agrupa título, painel de ações e tabela
         JPanel centerPanel = new JPanel();
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
         centerPanel.setBackground(Color.WHITE);
         centerPanel.add(lblTitulo);
-        centerPanel.add(Box.createVerticalStrut(20));
-        centerPanel.add(searchPanel);
+        centerPanel.add(Box.createVerticalStrut(10));
+        centerPanel.add(actionPanel);
         centerPanel.add(Box.createVerticalStrut(10));
         centerPanel.add(scrollPane);
-        centerPanel.add(Box.createVerticalStrut(20));
-        centerPanel.add(addPanel);
         centerPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         conteudoCentral.add(centerPanel);
 
-        // LOGO NO RODAPÉ
+        // RODAPÉ com logotipo
         JPanel bottomBar = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         bottomBar.setBackground(Color.WHITE);
         bottomBar.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -146,54 +129,93 @@ public class VisualizarEstoquePanel extends JPanel {
             System.err.println("Logo não encontrada!");
         }
 
-        // LAYOUT PRINCIPAL
+        // LAYOUT PRINCIPAL que une menu, conteúdo e rodapé
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(Color.WHITE);
         mainPanel.add(menuLateral, BorderLayout.WEST);
         mainPanel.add(conteudoCentral, BorderLayout.CENTER);
         mainPanel.add(bottomBar, BorderLayout.SOUTH);
 
-        setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
         add(mainPanel, BorderLayout.CENTER);
+        setPreferredSize(new Dimension(900, 600));
     }
 
-    // Método para pesquisar medicamentos pelo nome
-    private void pesquisarMedicamento(String filtro) {
-        if (filtro.isEmpty()) {
-            carregarDados();
-        } else {
-            List<MedicamentoView> filtrado = medicamentoList.stream()
-                    .filter(mv -> mv.getNome().toLowerCase().contains(filtro.toLowerCase()))
-                    .collect(Collectors.toList());
-            tableModel.setRowCount(0);
-            for (MedicamentoView mv : filtrado) {
-                tableModel.addRow(new Object[]{mv.getNome(), mv.getQuantidade(), mv.getAlerta()});
+    // Método para adicionar medicamento no estoque
+    private void adicionarMedicamento() {
+        String medicamento = txtMedicamento.getText().trim();
+        String quantidadeStr = txtQuantidade.getText().trim();
+        if (medicamento.isEmpty() || quantidadeStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Informe o nome e a quantidade do medicamento.", "Atenção", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        try {
+            int quantidade = Integer.parseInt(quantidadeStr);
+            if (quantidade <= 0) {
+                JOptionPane.showMessageDialog(this, "A quantidade deve ser um número positivo.", "Atenção", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            estoqueDAO.adicionarMedicamento(medicamento, quantidade);
+            JOptionPane.showMessageDialog(this, "Medicamento adicionado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+            txtMedicamento.setText("");
+            txtQuantidade.setText("");
+            atualizarDados();
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Quantidade inválida. Informe um número.", "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // Método para editar a quantidade de um medicamento selecionado na tabela
+    private void editarMedicamento() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Selecione um medicamento para editar.", "Atenção", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String medicamento = (String) tableModel.getValueAt(selectedRow, 0);
+        int currentQuantity = (int) tableModel.getValueAt(selectedRow, 1);
+        String novaQuantidadeStr = JOptionPane.showInputDialog(this, "Informe a nova quantidade para " + medicamento + ":", currentQuantity);
+        if (novaQuantidadeStr != null && !novaQuantidadeStr.trim().isEmpty()) {
+            try {
+                int novaQuantidade = Integer.parseInt(novaQuantidadeStr.trim());
+                if (novaQuantidade < 0) {
+                    JOptionPane.showMessageDialog(this, "A quantidade não pode ser negativa.", "Erro", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                // Atualiza a quantidade diretamente no Map do estoque
+                Map<String, Integer> meds = estoqueDAO.getEstoque().getMedicamentos();
+                if (meds.containsKey(medicamento)) {
+                    meds.put(medicamento, novaQuantidade);
+                    // Para salvar as alterações, recarregamos o estoque (supondo que o método salvar seja chamado internamente)
+                    estoqueDAO.recarregarEstoque();
+                    JOptionPane.showMessageDialog(this, "Quantidade atualizada com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                    atualizarDados();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Medicamento não encontrado no estoque.", "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Quantidade inválida.", "Erro", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 
-    // Método público para recarregar os dados do estoque (para atualização em tempo real)
-    public void carregarDados() {
+    // Carrega os dados do estoque na tabela
+    private void carregarDados() {
         tableModel.setRowCount(0);
-        medicamentoList = new ArrayList<>();
-        // Atualiza o estoque lendo novamente do arquivo
-        estoqueDAO.recarregarEstoque();  // Certifique-se de que este método esteja implementado no EstoqueDAO
+        estoqueDAO.recarregarEstoque();
         Map<String, Integer> medicamentos = estoqueDAO.getEstoque().getMedicamentos();
-        for (Map.Entry<String, Integer> entry : medicamentos.entrySet()) {
-            String nome = entry.getKey();
-            int quantidade = entry.getValue();
-            String alerta = quantidade < LIMITE_ESTOQUE_BAIXO ? "Estoque Baixo" : "";
-            medicamentoList.add(new MedicamentoView(nome, quantidade, alerta));
-        }
-        for (MedicamentoView mv : medicamentoList) {
-            tableModel.addRow(new Object[]{mv.getNome(), mv.getQuantidade(), mv.getAlerta()});
+        if (medicamentos != null) {
+            medicamentos.forEach((med, qtd) -> {
+                tableModel.addRow(new Object[]{med, qtd});
+            });
         }
     }
 
-    /**
-     * Método auxiliar para criar um botão do menu lateral com a ação especificada.
-     */
+    // Método de atualização para ser chamado pelo MainFrame
+    public void atualizarDados() {
+        carregarDados();
+    }
+
+    // Método auxiliar para criar botões do menu lateral
     private JButton criarBotaoMenu(String texto, Runnable acao) {
         JButton btn = new JButton(texto);
         btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
@@ -203,31 +225,6 @@ public class VisualizarEstoquePanel extends JPanel {
         btn.setFont(new Font("Arial", Font.PLAIN, 16));
         btn.addActionListener((ActionEvent e) -> acao.run());
         return btn;
-    }
-
-    // Classe auxiliar para representar cada medicamento na tabela
-    public static class MedicamentoView {
-        private final String nome;
-        private final int quantidade;
-        private final String alerta;
-
-        public MedicamentoView(String nome, int quantidade, String alerta) {
-            this.nome = nome;
-            this.quantidade = quantidade;
-            this.alerta = alerta;
-        }
-
-        public String getNome() {
-            return nome;
-        }
-
-        public int getQuantidade() {
-            return quantidade;
-        }
-
-        public String getAlerta() {
-            return alerta;
-        }
     }
 
     // Método main para teste isolado do painel

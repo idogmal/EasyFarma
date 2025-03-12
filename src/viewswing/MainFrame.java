@@ -94,7 +94,7 @@ public class MainFrame extends JFrame implements PropertyChangeListener {
 
     /**
      * Escuta eventos disparados pelos painéis (PropertyChangeEvent).
-     * Cada painel chama firePropertyChange("algumEvento", false, true).
+     * Cada painel chama firePropertyChange("algumEvento", false, true) conforme necessário.
      */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
@@ -116,10 +116,13 @@ public class MainFrame extends JFrame implements PropertyChangeListener {
         if ("showEstoque".equals(propName) && newValue) {
             cardLayout.show(cardPanel, ESTOQUE_CARD);
         }
-        // Novo tratamento: quando os dados são atualizados, recarregar a lista do painel de pesquisa
         if ("refreshData".equals(propName) && newValue) {
+            // Atualiza os dados dos painéis que exibem informações
             if (pesquisarReceitaPanel != null) {
-                pesquisarReceitaPanel.carregarDados();
+                pesquisarReceitaPanel.atualizarDados();
+            }
+            if (visualizarEstoquePanel != null) {
+                visualizarEstoquePanel.atualizarDados();
             }
         }
         if ("exit".equals(propName) && newValue) {
