@@ -43,6 +43,16 @@ public class ReceitaDAO {
         salvarReceitas();
     }
 
+    // Remove uma receita e persiste a alteração.
+    // Retorna true se a receita foi removida, false caso contrário.
+    public boolean removerReceita(Receita receita) {
+        boolean removido = receitas.remove(receita);
+        if (removido) {
+            salvarReceitas();
+        }
+        return removido;
+    }
+
     // Método privado para salvar a lista de receitas no arquivo JSON
     private void salvarReceitas() {
         try (FileWriter writer = new FileWriter(ARQUIVO_RECEITAS)) {

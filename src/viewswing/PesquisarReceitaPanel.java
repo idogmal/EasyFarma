@@ -13,7 +13,6 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,9 +35,11 @@ public class PesquisarReceitaPanel extends JPanel {
     private JButton btnPesquisar;
     private JButton btnExportar;
     private JButton btnValidar;
+    private JButton btnDeletar;  // novo botão para deletar receita
 
-    // Lista de dados para exportação usando a classe auxiliar ReceitaExport
+    // Lista para exportação e para manipulação interna
     private List<ReceitaExport> receitaExportList;
+    private List<Receita> receitas;
 
     public PesquisarReceitaPanel(ReceitaDAO receitaDAO) {
         super();
@@ -62,7 +63,7 @@ public class PesquisarReceitaPanel extends JPanel {
             firePropertyChange("showCadastrar", false, true);
         });
         btnPesquisarReceita = criarBotaoMenu("Pesquisar Receita", () -> {
-            // Já estamos nesta tela; ação vazia.
+            // Já estamos nesta tela
         });
         btnPesquisarReceita.setEnabled(false);
         btnEstoque = criarBotaoMenu("Estoque", () -> {
@@ -148,9 +149,12 @@ public class PesquisarReceitaPanel extends JPanel {
         });
         btnValidar = new JButton("Validar Receita");
         btnValidar.addActionListener(e -> validarReceitas());
+        btnDeletar = new JButton("Deletar Receita");
+        btnDeletar.addActionListener(e -> deletarReceita());
         botoesPanel.add(btnPesquisar);
         botoesPanel.add(btnExportar);
         botoesPanel.add(btnValidar);
+        botoesPanel.add(btnDeletar);
 
         // Tabela de receitas
         String[] colunas = { "Paciente", "CPF", "Medicamentos", "Data", "Status" };
@@ -177,7 +181,7 @@ public class PesquisarReceitaPanel extends JPanel {
         centerPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         conteudoCentral.add(centerPanel);
 
-        // LOGO NO RODAPÉ
+        // RODAPÉ com logotipo
         JPanel bottomBar = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         bottomBar.setBackground(Color.WHITE);
         bottomBar.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -186,7 +190,7 @@ public class PesquisarReceitaPanel extends JPanel {
             Image scaled = logo.getScaledInstance(50, -1, Image.SCALE_SMOOTH);
             JLabel logoLabel = new JLabel(new ImageIcon(scaled));
             bottomBar.add(logoLabel);
-        } catch (IOException | NullPointerException ex) {
+        } catch (Exception ex) {
             System.err.println("Logo não encontrada!");
         }
 
@@ -253,9 +257,9 @@ public class PesquisarReceitaPanel extends JPanel {
     // Método que carrega os dados da lista de receitas e atualiza a tabela.
     private void carregarDados() {
         tableModel.setRowCount(0);
+        receitas = receitaDAO.listarReceitas();
         receitaExportList = new ArrayList<>();
-        List<Receita> listaReceitas = receitaDAO.listarReceitas();
-        for (Receita r : listaReceitas) {
+        for (Receita r : receitas) {
             ReceitaExport re = new ReceitaExport(
                     r.getPaciente() != null ? r.getPaciente() : "",
                     r.getCpf() != null ? r.getCpf() : "",
@@ -282,7 +286,40 @@ public class PesquisarReceitaPanel extends JPanel {
     }
 
     private void validarReceitas() {
-        // Lógica para validar receitas
+        // Lógica para validar receitas (já existente)
+    }
+
+    // Método para deletar uma receita, exigindo senha do usuário
+    private void deletarReceita() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Selecione uma receita para deletar.", "Atenção", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        // Solicita a senha do usuário
+        JPasswordField pf = new JPasswordField();
+        int okCxl = JOptionPane.showConfirmDialog(this, pf, "Digite a senha para confirmar a exclusão:", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (okCxl == JOptionPane.OK_OPTION) {
+            String senha = new String(pf.getPassword());
+            // Para este exemplo, assumimos que a senha correta é "1234"
+            if (!"1234".equals(senha)) {
+                JOptionPane.showMessageDialog(this, "Senha incorreta.", "Erro", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            // Confirmação final de exclusão
+            int confirm = JOptionPane.showConfirmDialog(this, "Deseja realmente deletar a receita selecionada?", "Confirmar Exclusão", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                Receita receitaSelecionada = receitas.get(selectedRow);
+                // Chama o método de exclusão no DAO (certifique-se de que o método removerReceita existe e retorna boolean)
+                boolean removido = receitaDAO.removerReceita(receitaSelecionada);
+                if (removido) {
+                    JOptionPane.showMessageDialog(this, "Receita deletada com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                    atualizarDados();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Falha ao deletar a receita.", "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
     }
 
     // Método main para teste isolado do painel

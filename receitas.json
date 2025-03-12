@@ -91,16 +91,6 @@
     "validada": false
   },
   {
-    "id": 11,
-    "paciente": "teste",
-    "cpf": "teste123t",
-    "medicamentos": {
-      "tilenol": 1
-    },
-    "dataPrescricao": "2025-02-24",
-    "validada": false
-  },
-  {
     "id": 12,
     "paciente": "Danilo",
     "cpf": "998282222",
@@ -148,16 +138,6 @@
       "tilenol": 1
     },
     "dataPrescricao": "28/07/2024",
-    "validada": false
-  },
-  {
-    "id": 17,
-    "paciente": "testereal3",
-    "cpf": "10320392",
-    "medicamentos": {
-      "tilenol": 1
-    },
-    "dataPrescricao": "11/03/2025",
     "validada": false
   },
   {
